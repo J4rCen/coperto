@@ -5,7 +5,7 @@ import type { MenuItem, StopItemPayload } from '@/types/menu'
 import { useStopListUiStore } from '@/shared/store'
 
 // Ключ запроса для списка позиций меню.
-export const menuItemsQueryKey = ['menu-items'] as const
+export const menuItemsQueryKey: string[] = ['menu-items']
 
 // Загружает позиции меню с сервера.
 export async function getMenuItems(): Promise<MenuItem[]> {

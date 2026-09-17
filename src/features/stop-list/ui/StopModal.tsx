@@ -4,14 +4,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useStopListUiStore } from '@/shared/store'
 import { stopItemSchema } from '@/features/stop-list/model/schema'
-import type { StopItemFormValues, StopModalProps } from '@/types/menu'
+import type { StopItemFormValues, StopModalProps, StopReason } from '@/types/menu'
 
-const reasons = [
-	{ value: 'out_of_stock', label: 'Закончились продукты' },
-	{ value: 'equipment', label: 'Сломалось оборудование' },
-	{ value: 'quality', label: 'Вопросы к качеству партии' },
-	{ value: 'menu_change', label: 'Изменение меню' },
-] as const
+const reasons: Record<StopReason, string> = {
+	out_of_stock: 'Закончились продукты',
+	equipment: 'Сломалось оборудование',
+	quality: 'Вопросы к качеству партии',
+	menu_change: 'Изменение меню',
+}
 
 // Отображает форму остановки продаж.
 export default function StopModal({ itemTitle, isPending, onSubmit }: StopModalProps) {
@@ -43,7 +43,7 @@ export default function StopModal({ itemTitle, isPending, onSubmit }: StopModalP
 						Причина
 						<select className={`rounded-md border bg-white px-3 py-2.5 font-normal outline-none ${errors.reason ? 'border-[#c6462f]' : 'border-[#dfd9d0]'}`} {...register('reason')}>
 							<option value="">Выберите причину</option>
-							{reasons.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}
+							{Object.entries(reasons).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
 						</select>
 						{errors.reason && <span className="text-xs font-normal text-[#c6462f]">{errors.reason.message}</span>}
 					</label>
