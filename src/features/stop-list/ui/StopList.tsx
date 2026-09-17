@@ -1,35 +1,24 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
-import type { MenuItem as MenuItemData } from '@/types/menu'
 import MenuItem from '@/features/stop-list/ui/MenuItem'
+import StopModal from '@/features/stop-list/ui/StopModal'
 import Filter from './Filter'
+import { useStopListUiStore } from '@/shared/store'
+import { useStopListModel } from '@/features/stop-list/model/stop-list'
+import { LoadingList } from '@/shared/ui/LoadingList'
+import { StatePanel } from '@/shared/ui/StatePanel'
 
-async function getMenuItems(): Promise<MenuItemData[]> {
-	const response = await fetch('/api/menu-items')
-
-	if (!response.ok) {
-		throw new Error('Не удалось загрузить список позиций')
-	}
-
-	return response.json()
-}
-
-function LoadingState() {
-	return (
-		<ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Загрузка позиций">
-			{Array.from({ length: 5 }, (_, index) => <li className="h-23 animate-pulse rounded-lg bg-[#ebe6df]" key={index} />)}
-		</ul>
-	)
-}
-
+// Отображает и фильтрует список меню.
 export default function StopList() {
 	const searchParams = useSearchParams()
-	const { data: items = [], isPending, isError, error, refetch } = useQuery({
-		queryKey: ['menu-items'],
-		queryFn: getMenuItems,
-	})
+	const openPanel = useStopListUiStore((state) => state.openPanel)
+	const selectedItemId = useStopListUiStore((state) => state.selectedItemId)
+	const toasts = useStopListUiStore((state) => state.toasts)
+	const setOpenPanel = useStopListUiStore((state) => state.setOpenPanel)
+	const selectItem = useStopListUiStore((state) => state.selectItem)
+	const dismissToast = useStopListUiStore((state) => state.dismissToast)
+	const { data: items = [], isPending, isError, error, refetch, stopMutation, resumeMutation, pendingId } = useStopListModel()
 
 	const workshop = searchParams.get('shop')
 	const status = searchParams.get('status')
@@ -38,6 +27,13 @@ export default function StopList() {
 		(!status || item.status.kind === status),
 	)
 	const stoppedCount = items.filter((item) => item.status.kind === 'stopped').length
+	const selectedItem = items.find((item) => item.id === selectedItemId)
+
+	// Открывает окно остановки продаж.
+	function openStopModal(itemId: string) {
+		selectItem(itemId)
+		setOpenPanel('details')
+	}
 
 	return (
 		<main className="mx-auto w-[calc(100%-4rem)] max-w-280 pb-16 pt-10 max-[760px]:w-[calc(100%-2rem)] max-[760px]:pt-8">
@@ -63,36 +59,53 @@ export default function StopList() {
 					<span className="pb-1 text-xs text-[#77716a] max-[760px]:hidden">Данные обновляются автоматически</span>
 				</div>
 
-				{isPending && <LoadingState />}
+				{isPending && <LoadingList />}
 
 				{isError && (
-					<div className="rounded-lg border border-dashed border-[#e0a094] bg-[#fff7f5] p-12 text-center text-(--accent)" role="alert">
+					<StatePanel error>
 						<strong>Не удалось загрузить позиции</strong>
 						<p className="mt-2 text-sm">{error instanceof Error ? error.message : 'Произошла неизвестная ошибка'}</p>
 						<button className="mt-5 rounded-md bg-(--accent) px-4 py-2.5 text-xs font-semibold text-white" onClick={() => refetch()}>Повторить загрузку</button>
-					</div>
+					</StatePanel>
 				)}
 
 				{!isPending && !isError && items.length === 0 && (
-					<div className="rounded-lg border border-dashed border-[#dfd9d0] bg-white/50 p-12 text-center" role="status">
+					<StatePanel>
 						<strong>Позиции не найдены</strong>
 						<p className="mt-2 text-sm text-[#77716a]">В стоп-листе пока нет данных для отображения.</p>
-					</div>
+					</StatePanel>
 				)}
 
 				{!isPending && !isError && items.length > 0 && filteredItems.length === 0 && (
-					<div className="rounded-lg border border-dashed border-[#dfd9d0] bg-white/50 p-12 text-center" role="status">
+					<StatePanel>
 						<strong>Нет подходящих позиций</strong>
 						<p className="mt-2 text-sm text-[#77716a]">Измените значения фильтров, чтобы увидеть позиции меню.</p>
-					</div>
+					</StatePanel>
 				)}
 
 				{!isPending && !isError && filteredItems.length > 0 && (
 					<ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Позиции меню">
-						{filteredItems.map((item) => <MenuItem item={item} key={item.id} />)}
+						{filteredItems.map((item) => <MenuItem item={item} isPending={pendingId === item.id} onStop={openStopModal} onResume={(itemId) => resumeMutation.mutate(itemId)} key={item.id} />)}
 					</ul>
 				)}
 			</section>
+
+			{openPanel === 'details' && selectedItem && (
+				<StopModal
+					itemTitle={selectedItem.title}
+					isPending={pendingId === selectedItem.id}
+					onSubmit={(payload) => stopMutation.mutate({ itemId: selectedItem.id, payload })}
+				/>
+			)}
+
+			<div className="fixed bottom-5 right-5 z-40 flex max-w-[calc(100%-2rem)] flex-col gap-2" aria-live="polite">
+				{toasts.map((toast) => (
+					<div className={`flex items-center gap-4 rounded-lg border bg-white px-4 py-3 text-sm shadow-lg ${toast.tone === 'error' ? 'border-[#e0a094] text-[#c6462f]' : 'border-[#b9d5c3] text-[#397457]'}`} key={toast.id}>
+						<span>{toast.message}</span>
+						<button type="button" className="text-lg leading-none" onClick={() => dismissToast(toast.id)} aria-label="Закрыть уведомление">x</button>
+					</div>
+				))}
+			</div>
 		</main>
 	)
 }

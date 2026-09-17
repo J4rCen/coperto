@@ -1,4 +1,4 @@
-import type { MenuItem as MenuItemData, StopReason, Workshop } from '@/types/menu'
+import type { MenuItem, MenuItemProps, StopReason, Workshop } from '@/types/menu'
 
 const workshopLabels: Record<Workshop, string> = {
 	kitchen: 'Кухня',
@@ -13,7 +13,8 @@ const reasonLabels: Record<StopReason, string> = {
 	menu_change: 'Изменение меню',
 }
 
-export default function MenuItem({ item }: { item: MenuItemData }) {
+// Отображает одну позицию меню.
+export default function MenuItem({ item, isPending, onStop, onResume }: MenuItemProps) {
 	const isStopped = item.status.kind === 'stopped'
 
 	return (
@@ -39,6 +40,18 @@ export default function MenuItem({ item }: { item: MenuItemData }) {
 						<span>{item.status.until ?? 'Срок не указан'}</span>
 					</div>
 				) : <strong className="text-sm font-semibold text-[#397457]">В продаже</strong>}
+			</div>
+
+			<div className="flex justify-end max-[760px]:col-span-full max-[760px]:justify-start">
+				{isStopped ? (
+					<button type="button" className="rounded-md border border-[#c6462f] px-3 py-2 text-xs font-semibold text-[#c6462f] disabled:cursor-wait disabled:opacity-60" disabled={isPending} onClick={() => onResume(item.id)}>
+						{isPending ? 'Сохраняется...' : 'Вернуть в продажу'}
+					</button>
+				) : (
+					<button type="button" className="rounded-md border border-[#dfd9d0] px-3 py-2 text-xs font-semibold text-[#171512] disabled:cursor-wait disabled:opacity-60" disabled={isPending} onClick={() => onStop(item.id)}>
+						{isPending ? 'Сохраняется...' : 'Отправить в стоп'}
+					</button>
+				)}
 			</div>
 		</li>
 	)

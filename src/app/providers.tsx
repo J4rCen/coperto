@@ -10,7 +10,7 @@ const client = new QueryClient({
     }
 })
 
-// Обвертка для Tanstack Query провайдера
+// Подключает провайдер и дебагер TanStack Query.
 export function TanstackQueryProvider({ children }: { children: ReactNode }) {
     return (
         <QueryClientProvider client={client}>

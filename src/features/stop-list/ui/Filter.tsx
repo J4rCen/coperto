@@ -14,11 +14,13 @@ const statuses = [
     { value: 'stopped', label: 'Продажи остановлены' },
 ] satisfies ReadonlyArray<{ value: Status['kind']; label: string }>
 
+// Отображает фильтры списка позиций.
 export default function Filter() {
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
 
+    // Обновляет фильтр в URL.
     function updateFilter(name: 'shop' | 'status', value: string) {
         const params = new URLSearchParams(searchParams.toString())
 
@@ -33,7 +35,7 @@ export default function Filter() {
     }
 
     return (
-        <form className="flex flex-wrap gap-4 border-b border-[#dfd9d0] bg-[#f6f3ee] px-8 py-4 max-sm:px-4" aria-label="Фильтры списка">
+        <form className="flex flex-wrap gap-4 border-b border-[#dfd9d0] bg-[#f6f3ee] py-4 max-sm:px-4" aria-label="Фильтры списка">
             <label className="flex flex-col gap-1">
                 <span className="text-xs font-semibold uppercase tracking-[0.04em] text-[#77716a]">Цех</span>
                 <select

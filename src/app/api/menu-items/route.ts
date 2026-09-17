@@ -17,6 +17,7 @@ const menuItems: MenuItem[] = [
 	{ id: '14', title: 'Малиновый чизкейк', workshop: 'pastry', stock: 4, status: { kind: 'available' }, updatedAt: '6 часов назад' },
 ]
 
+// Возвращает список позиций меню.
 export async function GET() {
 	await new Promise((resolve) => setTimeout(resolve, 700))
 
