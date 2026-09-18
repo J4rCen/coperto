@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import MenuItem from '@/features/stop-list/ui/MenuItem'
+import MenuItem from '@/shared/ui/MenuItem'
 import StopModal from '@/features/stop-list/ui/StopModal'
 import Filter from './Filter'
 import { useStopListUiStore } from '@/shared/store'
