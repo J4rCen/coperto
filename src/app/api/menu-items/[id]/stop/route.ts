@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { stopItemSchema } from '@/features/stop-list/model/schema'
+import { stopItemSchema } from '@/shared/lib/schema'
 
 // Останавливает продажи позиции меню.
 export async function POST(

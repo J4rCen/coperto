@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useStopListUiStore } from '@/shared/store'
-import { stopItemSchema } from '@/features/stop-list/model/schema'
+import { stopItemSchema } from '@/shared/lib/schema'
 import type { StopItemFormValues, StopModalProps, StopReason } from '@/types/menu'
 
 const reasons: Record<StopReason, string> = {
